@@ -7,7 +7,7 @@ import json
 usaJobsParams = {"Host":"data.usajobs.gov", "User-Agent":"byumpa.careerservices@gmail.com", "Authorization-Key":"I0D7oY6CmBgDyPuSTN+uTV99ELhWFbkEWS80H6oXO4I=", "ResultsPerPage":"1"}
 
 # This code block currently used just to obtain and understand job categorization codes.
-# It has no bearing on the output of the program.
+# It has no bearing on the results of the program.
 orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/whomayapply")
 print(orgCategoryResponse.text + "\n")
 orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/hiringpaths")
@@ -32,11 +32,18 @@ for i in range(len(usaJobsResponseDict["SearchResult"]["SearchResultItems"])):
     usaJobsParsed += usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionTitle"]
     usaJobsParsed += "," + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionRemuneration"][0]["MinimumRange"]
     usaJobsParsed += " - " + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionRemuneration"][0]["MaximumRange"]
+    tempString = usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["ApplicationCloseDate"]
+    usaJobsParsed += "," + tempString[:tempString.find('T')]
     usaJobsParsed += "," + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionURI"]
-    print(usaJobsParsed)
     usaJobsParsed += "\nFederal Government,"
+
+print(usaJobsParsed)
 
 with open("C:\\Users\\josep\\Desktop\\JobUpload.csv", "a") as outputFile:
     outputFile.write(usaJobsParsed)
+
+#SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
+#SPREADSHEET_ID = ['1eLcNCKAloyzM65PNzijcGr6NUpCaTRrF1j906AlIgFY']
 
 print("\nDone!")
