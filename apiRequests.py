@@ -12,6 +12,8 @@ orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/whomay
 print(orgCategoryResponse.text + "\n")
 orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/hiringpaths")
 print(orgCategoryResponse.text + "\n")
+orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/occupationalseries")
+print(orgCategoryResponse.text + "\n")
 
 usaJobsURL = "https://data.usajobs.gov/api/search?JobCategoryCode=0340&HiringPath=PUBLIC"
 
@@ -32,6 +34,8 @@ for i in range(len(usaJobsResponseDict["SearchResult"]["SearchResultItems"])):
     usaJobsParsed += usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionTitle"]
     usaJobsParsed += "," + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionRemuneration"][0]["MinimumRange"]
     usaJobsParsed += " - " + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionRemuneration"][0]["MaximumRange"]
+
+    # Add the application close date to the result string, without the time of day
     tempString = usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["ApplicationCloseDate"]
     usaJobsParsed += "," + tempString[:tempString.find('T')]
     usaJobsParsed += "," + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionURI"]
