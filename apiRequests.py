@@ -2,52 +2,53 @@ import requests
 from requests.auth import HTTPBasicAuth
 import json
 
-#usaJobsAuth = HTTPBasicAuth('byumpa.careerservices@gmail.com', 'I0D7oY6CmBgDyPuSTN+uTV99ELhWFbkEWS80H6oXO4I=')
+class apiScraper:
+    apiAuthInput = None
 
-usaJobsParams = {"Host":"data.usajobs.gov", "User-Agent":"byumpa.careerservices@gmail.com", "Authorization-Key":"I0D7oY6CmBgDyPuSTN+uTV99ELhWFbkEWS80H6oXO4I=", "ResultsPerPage":"1"}
+    def __init__(self):
+        with open("C:\\Users\\josep\\Desktop\\Work Projects\\jobScraperAPIAuthCredentials.json", "r") as inputFile:
+            self.apiAuthInput = json.load(inputFile)
+            inputFile.close()
+    def scrapeUSAJobs(self, jobcategorycode = '0340', keywords = 'none'):
+        usaJobsParams = {"Host": self.apiAuthInput["usajobs"]["host_url"],
+                         "User-Agent": self.apiAuthInput["usajobs"]["usajobs_user_agent"],
+                         "Authorization-Key": self.apiAuthInput["usajobs"]["usajobs_authorization_key"],
+                         "ResultsPerPage": "1"}
 
-# This code block currently used just to obtain and understand job categorization codes.
-# It has no bearing on the results of the program.
-orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/whomayapply")
-print(orgCategoryResponse.text + "\n")
-orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/hiringpaths")
-print(orgCategoryResponse.text + "\n")
-orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/occupationalseries")
-print(orgCategoryResponse.text + "\n")
+        usaJobsURL = "https://data.usajobs.gov/api/search?JobCategoryCode=" + jobcategorycode + "&HiringPath=PUBLIC"
 
-usaJobsURL = "https://data.usajobs.gov/api/search?JobCategoryCode=0340&HiringPath=PUBLIC"
+        if keywords != 'none':
+            usaJobsURL += "&Keywords=" + keywords
 
-response = requests.get(usaJobsURL, headers=usaJobsParams)
+        response = requests.get(usaJobsURL, headers=usaJobsParams)
 
-outputJson = json.dumps(response.json())
+        usaJobsResponseDict = response.json()
+        usaJobsParsed = "Federal Government,"
 
-with open("C:\\Users\\josep\\Desktop\\SampleResult.json", "w") as outputFile:
-    outputFile.write(outputJson)
-# print(response.text)
+        for i in range(len(usaJobsResponseDict["SearchResult"]["SearchResultItems"])):
+            usaJobsPositionDict = usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]
+            # Add job title to output string
+            usaJobsParsed += usaJobsPositionDict["PositionTitle"].replace(',', '')
 
-# print(response.json())
+            # Add minimum and maximum salary range to output string
+            usaJobsParsed += ",$" + usaJobsPositionDict["PositionRemuneration"][0]["MinimumRange"]
 
-usaJobsResponseDict = response.json()
-usaJobsParsed = "Federal Government,"
+            usaJobsParsed += " - $" + usaJobsPositionDict["PositionRemuneration"][0]["MaximumRange"]
 
-for i in range(len(usaJobsResponseDict["SearchResult"]["SearchResultItems"])):
-    usaJobsParsed += usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionTitle"]
-    usaJobsParsed += "," + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionRemuneration"][0]["MinimumRange"]
-    usaJobsParsed += " - " + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionRemuneration"][0]["MaximumRange"]
+            # Add the application close date to the result string, without the time of day
+            tempString = usaJobsPositionDict["ApplicationCloseDate"]
+            usaJobsParsed += "," + tempString[:tempString.find('T')]
+            usaJobsParsed += "," + \
+                             usaJobsPositionDict["PositionURI"]
+            usaJobsParsed += ",Federal Government,"
 
-    # Add the application close date to the result string, without the time of day
-    tempString = usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["ApplicationCloseDate"]
-    usaJobsParsed += "," + tempString[:tempString.find('T')]
-    usaJobsParsed += "," + usaJobsResponseDict["SearchResult"]["SearchResultItems"][i]["MatchedObjectDescriptor"]["PositionURI"]
-    usaJobsParsed += "\nFederal Government,"
+        return usaJobsParsed[0:-20]
+        #outputJson = json.dumps(response.json())
 
-print(usaJobsParsed)
-
-with open("C:\\Users\\josep\\Desktop\\JobUpload.csv", "a") as outputFile:
-    outputFile.write(usaJobsParsed)
-
-#SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-
-#SPREADSHEET_ID = ['1eLcNCKAloyzM65PNzijcGr6NUpCaTRrF1j906AlIgFY']
-
-print("\nDone!")
+        def printUSAJobsCodeLists(self):
+            orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/whomayapply")
+            print(orgCategoryResponse.text + "\n")
+            orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/hiringpaths")
+            print(orgCategoryResponse.text + "\n")
+            orgCategoryResponse = requests.get("https://data.usajobs.gov/api/codelist/occupationalseries")
+            print(orgCategoryResponse.text + "\n")
