@@ -5,8 +5,8 @@ import json
 class apiScraper:
     apiAuthInput = None
 
-    def __init__(self):
-        with open("C:\\Users\\josep\\Desktop\\Work Projects\\jobScraperAPIAuthCredentials.json", "r") as inputFile:
+    def __init__(self, authfilepath):
+        with open(authfilepath, "r") as inputFile:
             self.apiAuthInput = json.load(inputFile)
             inputFile.close()
     def scrapeUSAJobs(self, jobcategorycode = '0340', keywords = 'none'):

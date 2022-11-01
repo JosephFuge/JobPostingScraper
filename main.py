@@ -26,7 +26,7 @@ def main(argv):
     sheet = sheetcredentials.open_by_key(authInputFile["googlesheets"]["authorization_key"])
     worksheet = sheet.sheet1
 
-    myAPIScraper = apiRequests.apiScraper()
+    myAPIScraper = apiRequests.apiScraper(argv[1])
 
     result = myAPIScraper.scrapeUSAJobs()
 
@@ -38,7 +38,6 @@ def main(argv):
             uploadMatrix[i][j] = [outputList[(i * NUM_COLUMNS) + j]]
 
     updateRanges = ['A' + str(x) + ':E' + str(x) for x in range(2, (len(uploadMatrix) + 2))]
-    worksheet.update_values_batch(['A7:E7', 'A8:E8'], [[['Federal Government'], ['Testy tester1'], ['$112233 - $122334'], ['11/2/2022'], ['usajobs.gov']],[['Non-Profit'], ['Testy tester2'], ['$212233 - $212334'], ['11/3/2023'], ['usajobs.gov/test']]], 'COLUMNS')
 
     worksheet.update_values_batch(updateRanges, uploadMatrix, 'COLUMNS')
 
