@@ -3,6 +3,7 @@ import json
 import apiRequests
 import sys
 
+NUM_COLUMNS = 5
 
 # jobScraperAPIAuthCredentials.json file path should be first argument passed in.
 # Should contain authentication credentials on various APIs used including:
@@ -20,10 +21,9 @@ def main(argv):
         print("File " + argv[1] + " could not be found.")
         exit()
 
+    # Authorize access to Google Sheets and enter the desired workbook.
     sheetcredentials = pygsheets.authorize(service_file=authInputFile["googlesheets"]["authorization_file"])
-
     sheet = sheetcredentials.open_by_key(authInputFile["googlesheets"]["authorization_key"])
-
     worksheet = sheet.sheet1
 
     myAPIScraper = apiRequests.apiScraper()
@@ -32,22 +32,14 @@ def main(argv):
 
     outputList = result.split(',')
 
-    # At the moment, it crams entire result string into one cell.
-    # TODO: Each comma-separated value must go into the next corresponding cell
-    # worksheet.update_value('A3', result)
-
-    # uploadMatrix = [[a, b, c, d, e] for ind, a, b, c, d, e in enumerate(outputList[ind * 5:(ind + 1) * 5])]
-    uploadMatrix = [[[0] * 5] for i in range(int(len(outputList) / 5))]
-    for i in range(0, int(len(outputList) / 5)):
-        for j in range(0, 5):
-            uploadMatrix[i][0][j] = outputList[(i * 5) + j]
+    uploadMatrix = [[[0]] * NUM_COLUMNS for i in range(int(len(outputList) / 5))]
+    for i in range(0, int(len(outputList) / NUM_COLUMNS)):
+        for j in range(0, NUM_COLUMNS):
+            uploadMatrix[i][j] = [outputList[(i * NUM_COLUMNS) + j]]
 
     updateRanges = ['A' + str(x) + ':E' + str(x) for x in range(2, (len(uploadMatrix) + 2))]
+    worksheet.update_values_batch(['A7:E7', 'A8:E8'], [[['Federal Government'], ['Testy tester1'], ['$112233 - $122334'], ['11/2/2022'], ['usajobs.gov']],[['Non-Profit'], ['Testy tester2'], ['$212233 - $212334'], ['11/3/2023'], ['usajobs.gov/test']]], 'COLUMNS')
+
     worksheet.update_values_batch(updateRanges, uploadMatrix, 'COLUMNS')
-
-    for value in range(0, len(outputList)):
-        currCell = str(chr(65 + (value % 5))) + str(int(value / 5) + 2)
-        worksheet.update_value(currCell, outputList[value])
-
 
 main(sys.argv)
